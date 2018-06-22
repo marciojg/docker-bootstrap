@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  db_data:
+  gems_data:
+
+services:
+  db:
+    image: postgres:10
+    restart: always
+    environment:
+      POSTGRES_USER: $QUALITY_DB_USER
+      POSTGRES_PASSWORD: $QUALITY_DB_PASSWD
+    ports:
+      - "${DOCKER_EXTERNAL_PORT_DB}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  app:
+    user: root
+    stdin_open: true
+    tty: true
+    build: .
+    volumes:
+      - ./:/app
+      - gems_data:/usr/local/bundle
+    environment:
+      RAILS_ENV: $RAILS_ENV
+    ports:
+      - "${DOCKER_EXTERNAL_PORT_APP}:3000"
+    command: bash start.sh
+    depends_on:
+      - db
+  web:
+    build: ./web
+    depends_on:
+      - app
+    ports:
+      - "${DOCKER_EXTERNAL_PORT_WEB}:80"
