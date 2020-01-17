@@ -1,0 +1,62 @@
+version: '3'
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '3024:5432'
+  database_admin_ui:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@email.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - '3023:80'
+    depends_on:
+      - database
+  mailer:
+    image: mailhog/mailhog
+    ports:
+      - '3025:8025'
+      - '3026:1025'
+  metabase:
+    image: metabase/metabase
+    ports:
+      - '3028:3000'
+  ldap_server:
+    image: osixia/openldap
+    ports:
+      - '3022:389'
+    volumes:
+      - ./ldap_server:/container/service/slapd/assets/test
+  ldap_admin_ui:
+    image: osixia/phpldapadmin
+    depends_on:
+      - ldap_server
+    ports:
+      - '3021:443'
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap_server
+  application:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
+        - NODE_ENV=development
+        - RAILS_MASTER_KEY=9a081ff350d9131730cf36ab311b5db5
+        - NODE_OPTIONS=--max-old-space-size=8192
+    ports:
+      - '3020:3000'
+      - '9090:8989'
+    volumes:
+      - ./:/app
+    depends_on:
+      - database
+      - mailer
+      - ldap_server
+      - metabase
