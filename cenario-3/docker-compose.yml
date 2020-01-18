@@ -1,0 +1,79 @@
+version: '3'
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '3004:5432'
+  database_admin_ui:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com.br
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - '3003:80'
+    depends_on:
+      - database
+  mailer:
+    image: mailhog/mailhog
+    ports:
+      - '3005:8025'
+      - '3006:1025'
+  metabase:
+    image: metabase/metabase
+    ports:
+      - '3008:3000'
+  ldap_server:
+    image: osixia/openldap
+    ports:
+      - '3002:389'
+    volumes:
+      - ./ldap_server:/container/service/slapd/assets/test
+  ldap_admin_ui:
+    image: osixia/phpldapadmin
+    depends_on:
+      - ldap_server
+    ports:
+      - '3001:443'
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap_server
+  application:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
+        - NODE_ENV=development
+        - RAILS_MASTER_KEY=XXXXXXXXXXXXXXXXXXXXXXXXX
+        - NODE_OPTIONS=--max-old-space-size=8192
+    ports:
+      - '3000:3000'
+      - '3009:3009'
+      - '8989:8989'
+    volumes:
+      - ./:/app
+    depends_on:
+      - database
+      - mailer
+      - ldap_server
+      - metabase
+  webpack_dev_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
+        - NODE_ENV=development
+        - RAILS_MASTER_KEY=XXXXXXXXXXXXXXXXXXXXXXXXX
+        - NODE_OPTIONS=--max-old-space-size=8192
+    ports:
+      - '3035:3035'
+    command: /bin/bash -c "npm cache verify && yarn install && bundle install && rm -Rf /app/public/packs/ && bundle exec bin/webpack-dev-server"
+    volumes:
+      - ./:/app
+    depends_on:
+      - application
