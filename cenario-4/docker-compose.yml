@@ -1,0 +1,41 @@
+version: '3'
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '3004:5432'
+  application:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
+        - NODE_ENV=development
+        - RAILS_MASTER_KEY=XXXXXXXXXXXXXXXXXXXXXXXX
+    ports:
+      - '3000:3000'
+      - '3009:3009'
+    volumes:
+      - ./:/app
+    depends_on:
+      - database
+  webpack_dev_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
+        - NODE_ENV=development
+        - RAILS_MASTER_KEY=XXXXXXXXXXXXXXXXXXXXXXXX
+    ports:
+      - '3035:3035'
+    command: /bin/bash -c "npm cache verify && yarn install && bundle install && rm -Rf /app/public/packs/ && bundle exec bin/webpack-dev-server"
+    volumes:
+      - ./:/app
+    depends_on:
+      - application
