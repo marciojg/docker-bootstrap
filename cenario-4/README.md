@@ -50,15 +50,15 @@ Saia do container
 exit
 ```
 
+Se de acesso aos arquivos e va para a pasta da aplicação
+```
+sudo chown -R vagrant:vagrant ./cad_product/* && cd ./cad_product
+```
+
 Mova o arquivo docker e docker-compose para o projeto
 ```
 mv Docker ./cad_product
 mv docker-compose.yml ./cad_product
-```
-
-Se de acesso aos arquivos e va para a pasta da aplicação
-```
-sudo chown -R vagrant:vagrant ./cad_product/* && cd ./cad_product
 ```
 
 Crie o arquivo "config/initializers/content_security_policy.rb" e cole o conteúdo abaixo, para as portas do webpack-dev-server ficarem disponibilizadas externamente no container
@@ -74,4 +74,22 @@ echo $(cat config/master.key)
 ```
 
 arrumar as credenciais
-criar o banco - rails db:drop db:create db:migrate db:seed
+```
+  database: cad_product_development
+  username: postgres
+  password: postgres
+  host: database
+  port: 5432
+```
+
+Sobe a aplicação
+```
+docker-compose up --build
+```
+
+criar o banco
+```
+rails db:drop db:create db:migrate db:seed
+```
+
+Enjoy!
