@@ -31,6 +31,8 @@ gem install rails
 Com o rails instalado crie um novo projeto
 ```
 rails new cad_product --database=postgresql
+OR
+rails new cad_product --api --database=postgresql
 ```
 
 Vá até dentro do projeto, ainda dentro do container
