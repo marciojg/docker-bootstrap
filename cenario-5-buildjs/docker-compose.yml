@@ -1,0 +1,18 @@
+version: '3'
+services:
+  nodejs_build:
+    build:
+      context: .
+      dockerfile: Dockerfile.devbuild
+    volumes:
+      - .:/app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm rebuild node-sass
+        npm run lint
+        npm run build
+        npm run start
+  # app_nginx: app nginx
