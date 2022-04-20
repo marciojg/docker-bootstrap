@@ -7,3 +7,4 @@
 - Cenario-5-buildjs (mudar esse nome sem sentido)
 - mongodb
 - node-ts-express
+- postgresql
