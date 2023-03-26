@@ -8,3 +8,5 @@
 - mongodb
 - node-ts-express
 - postgresql
+- backend-postgres-mailcatcher
+  - Dockerfile ruby 3.2.1 alpine
