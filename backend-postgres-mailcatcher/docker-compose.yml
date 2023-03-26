@@ -1,0 +1,65 @@
+version: "3.3"
+
+volumes:
+  database_volume:
+
+services:
+  swagger:
+    restart: on-failure
+    container_name: swagger-container
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./swagger:/swagger
+    environment:
+      - SWAGGER_JSON=/swagger/openapi.json
+    depends_on:
+      - backend
+
+  mailcatcher:
+    restart: on-failure
+    container_name: mailcatcher-container
+    image: dockage/mailcatcher
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    depends_on:
+      - backend
+
+  backend:
+    container_name: backend-container
+    stdin_open: true
+    tty: true
+    build:
+      context: "./backend"
+      dockerfile: Dockerfile
+    image: backend
+    env_file:
+      - ./backend/.env
+    command: ./bin/setup_and_up.sh
+    ports:
+      - "3030:3000"
+    depends_on:
+      - database
+    volumes:
+      - ./backend:/app
+
+  database:
+    container_name: database-container
+    image: "postgres:12.3-alpine"
+    ports:
+      - "3031:5432"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "pg_isready -U postgres"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_PORT: 5432
+    volumes:
+      - database_volume:/var/lib/postgresql/data
